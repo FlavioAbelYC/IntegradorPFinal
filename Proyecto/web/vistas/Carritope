@@ -1,0 +1,124 @@
+<%@page import="java.util.List"%>
+<%@page import="javax.swing.JOptionPane"%>
+<%@page import="entidades.Producto"%>
+<%@page import="modelo.ProductoDAO"%>
+<%@page import="entidades.Articulo" %>
+<%@page import="java.util.ArrayList" %>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
+<jsp:include page="Header.jsp"></jsp:include>
+<%
+  HttpSession carsesion = request.getSession();
+  //JOptionPane.showMessageDialog(null, carsesion.getAttribute("carrito"));
+  List<Articulo> articulos = carsesion.getAttribute("carrito") == null ? new ArrayList<Articulo>() : (ArrayList) carsesion.getAttribute("carrito");
+  double total = 0;
+%>
+<div class="container mt-3">
+
+  <div class="table-responsive">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Descripcion</th>
+          <th>Precio</th>
+          <th>Cantidad</th>
+          <th>Total</th>
+          <th>Opcion</th>
+        </tr>
+      </thead>
+      <tbody id="contCarrito">
+        <%
+                  if (articulos.size() > 0) {
+                    int item = 1;
+                    for (Articulo a : articulos) {
+                      Producto pro = new ProductoDAO().getProductoID(a.getIdProducto());
+                      total += a.getCantidad() * pro.getPrecioprod();
+                %>
+        <tr>
+          <td><%=item%></td>
+          <td><%=pro.getNombreprod()%></td>
+          <td><%=pro.getPrecioprod()%></td>
+          <td><input type="text" value="<%=a.getCantidad()%>"></td>
+          <td><%= Math.round(pro.getPrecioprod() * a.getCantidad() * 100.0) / 100.0%></td>
+          <td class="text-center">
+            <span id="idproducto" style="display: none;"><%=pro.getIdproducto()%></span>
+            <i class="fa fa-trash btn-danger btn-sm" role="button" data-id="<%=pro.getIdproducto()%>"
+              id="delProducto"></i></td>
+        </tr>
+        <%
+                    item += 1;
+                  }
+
+                } else {
+                %>
+        <tr>
+          <td class="text-danger text-center" colspan="6">No hay datos</td>
+        </tr>
+        <%
+                  }
+                %>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td class="text-danger text-end" colspan="4">TOTAL de Pago</td>
+          <td class="text-danger" colspan="2"><%=Math.round(total*100.0)/100.0%></td>
+        </tr>
+      </tfoot>
+
+    </table>
+  </div>
+</div>
+<jsp:include page="Footer.jsp"></jsp:include>
+
+<script>
+  document.addEventListener("DOMContentLoaded",()=>{
+    mostrarDatos();
+  })
+  const contCarrito = document.querySelector("#contCarrito");
+  // contCarrito.addEventListener("click",(e)=>{
+  //   if(e.target.classList.contains("fa-trash")){
+  //     e.preventDefault();
+  //     let id =e.target.dataset.id;
+  //     e.parentElement.remove();
+  //     $.ajax({
+  //       url:"Carrito",
+  //       type:"POST",
+  //       data:{opcion:"delcarrito",idproducto:id},
+  //       success:function(res){
+  //         mostrarDatos();
+  //       }
+  //     })
+  //   }
+  //   e.stopPropagation();
+  // })
+  // $("tr #delProducto").click(function (e) {
+  //   var elemento = $(this);
+  //   var id = elemento.parent().find("#idproducto").text();
+
+  //   console.log(contCarrito.length);
+  //   $.ajax({
+  //     url: "Carrito",
+  //     type: "POST",
+  //     data: {
+  //       opcion: "delcarrito",
+  //       idproducto: id
+  //     },
+  //     success: function (res) {
+  //       elemento.parent().parent().remove();
+  //     }
+  //   })
+  // })
+  const mostrarDatos = () => {
+    $.ajax({
+      url: "Carrito",
+      type: "POST",
+      dataType: 'json',
+      data: {
+        opcion: "mostrarcarrito"
+      },
+      success: function (res) {
+        console.log(res)
+      }
+    })
+  }
+</script>
